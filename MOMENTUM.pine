@@ -1,7 +1,7 @@
 //@version = 4
 //                                                                              STUDY/STRATEGY SETTINGS
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-strategy( title="✖ 𝗠𝗼𝗺𝗲𝗻𝘁𝘂𝗺" , shorttitle="✖ 𝗠𝗼𝗺𝗲𝗻𝘁𝘂𝗺" , overlay=false , format=format.price , precision=6  ,initial_capital=25000, commission_value=0.2, commission_type=strategy.commission.percent)
+strategy(title="X Momentum" , shorttitle="X Momentum" , overlay=false , format=format.price , precision=6  ,initial_capital=25000, commission_value=0.2, commission_type=strategy.commission.percent, max_bars_back = 500)
 //                                                                              COLORSPACE
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 invisible		        = #00000000
@@ -37,7 +37,7 @@ PULSE_LO			    = input( defval=-0.25       , maxval=0.0                , step=0.
 
 
 //                                                                              FUNCTIONS
-//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░��░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 //                                                              AVERAGING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      ROLLING MOVING AVERAGE
@@ -103,6 +103,7 @@ TVAL                    = strategy.initial_capital
 XVAL                    = -VALUATE(close)                            // NEEDS TO VALUATE FROM NEUTRAL TO UP, NOT ALL
 float ACCOUNT_PERCENT   = 1
 ACCOUNT_PERCENT         := fixnan(ACCOUNT_PERCENT[1])
+XVAL                    := XVAL * (strategy.initial_capital/25000)
 XVAL                    := XVAL * ACCOUNT_PERCENT
 
 //                                                              TRIGGERING
@@ -181,6 +182,246 @@ if (TIME_ALLOW and LONG)
 
 POSITION_AVG_PRICE              := CONTRACTS_OPEN_USD / CONTRACTS_OPEN_BTC // ICLUDES PROFITS
 
+
+//                                                              BREAKOUT ZZC
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒   
+prd_ZZ = 40 // ZIGZAG PERIOD, MAX 55
+
+// check highest/lowest levels and create zigzag
+float ph_ZigzagC = highestbars(high, prd_ZZ) == 0 ? high : na
+float pl_ZigzagC = lowestbars(low, prd_ZZ) == 0 ? low : na
+var dir_ZigzagC = 0
+dir_ZigzagC := iff(ph_ZigzagC and na(pl_ZigzagC), 1, iff(pl_ZigzagC and na(ph_ZigzagC), -1, dir_ZigzagC))
+var zigzagC = array.new_float(0)
+// keep last point
+oldzigzag = array.new_float(2)
+if array.size(zigzagC) > 1
+    array.set(oldzigzag, 0, array.get(zigzagC, 0))
+    array.set(oldzigzag, 1, array.get(zigzagC, 1))
+    
+add_to_zigzagC(value, bindex)=>
+    array.unshift(zigzagC, bindex)
+    array.unshift(zigzagC, value)
+    if array.size(zigzagC) > 8
+        array.pop(zigzagC)
+        array.pop(zigzagC)
+    
+update_zigzagC(value, bindex)=>
+    if array.size(zigzagC) == 0
+        add_to_zigzagC(value, bindex)
+    else
+        if (dir_ZigzagC == 1 and value > array.get(zigzagC, 0)) or (dir_ZigzagC == -1 and value < array.get(zigzagC, 0))
+            array.set(zigzagC, 0, value)
+            array.set(zigzagC, 1, bindex)
+        0.
+
+dirchanged_zigzagC = dir_ZigzagC != dir_ZigzagC[1]
+if ph_ZigzagC or pl_ZigzagC
+    if dirchanged_zigzagC
+        add_to_zigzagC(dir_ZigzagC == 1 ? ph_ZigzagC : pl_ZigzagC, bar_index)
+    else
+        update_zigzagC(dir_ZigzagC == 1 ? ph_ZigzagC : pl_ZigzagC, bar_index)
+
+
+// definitions
+width = (highest(292) - lowest(292)) / 107
+// to get rid of consistency warning, keep close in a array
+var cls = array.new_float(500, na)
+array.unshift(cls, close)
+array.pop(cls)
+
+// calculate location of y level in a point
+calc_pos_circle_rad(center_y_lev, center_bindex, radius, cal_bindex)=>
+    loc_diff = abs(center_bindex - cal_bindex)
+    rad = sqrt(pow(radius, 2) - pow(loc_diff * width, 2))
+
+// draw uptrend circle until last candle
+draw_up_circle(radius)=>
+    ind = dir_ZigzagC == 1 ? 0 : 2
+    nxt = dir_ZigzagC == 1 ? 2 : 4
+    broken = false
+    if bar_index - 1 > array.get(zigzagC, nxt + 1)
+        last_x = round(array.get(zigzagC, nxt + 1))
+        last_y = array.get(zigzagC, nxt)
+        for x = array.get(zigzagC, nxt + 1) + 1 to bar_index - 1
+            yloc = array.get(zigzagC, ind) - calc_pos_circle_rad(array.get(zigzagC, ind), array.get(zigzagC, ind + 1), radius, x)
+            if na(yloc)
+                break
+            if not na(yloc) and array.get(cls, round(bar_index - x)) < yloc
+                broken := true
+                break
+            last_x := last_x + 1
+            last_y := yloc
+    broken
+
+// draw downtrend circle until last candle    
+draw_down_circle(radius)=>
+    ind = dir_ZigzagC == 1 ? 2 : 0
+    nxt = dir_ZigzagC == 1 ? 4 : 2
+    broken = false
+    if bar_index - 1 > array.get(zigzagC, nxt + 1)
+        last_x = round(array.get(zigzagC, nxt + 1))
+        last_y = array.get(zigzagC, nxt)
+        for x = array.get(zigzagC, nxt + 1) + 1 to bar_index - 1
+            yloc = array.get(zigzagC, ind) +  calc_pos_circle_rad(array.get(zigzagC, ind), array.get(zigzagC, ind + 1), radius, x)
+            if na(yloc)
+                break
+            if not na(yloc) and array.get(cls, round(bar_index - x)) > yloc
+                broken := true
+                break
+            last_x := last_x + 1
+            last_y := yloc
+    broken
+
+// variables to check if any circle broken
+var bool uptbroken = false
+var bool downtbroken = false
+uptexist = false
+downtexist = false
+
+if array.size(zigzagC) >= 6
+    // radius of circles
+    r1 = sqrt(pow(array.get(zigzagC, 0) - array.get(zigzagC, 2), 2) + pow((array.get(zigzagC, 1) - array.get(zigzagC, 3)) * width, 2))
+    r2 = sqrt(pow(array.get(zigzagC, 2) - array.get(zigzagC, 4), 2) + pow((array.get(zigzagC, 3) - array.get(zigzagC, 5)) * width, 2))
+    radius_up = dir_ZigzagC == 1 ? r1 : r2
+    radius_down = dir_ZigzagC == 1 ? r2 : r1
+    
+    // draw uptrend circle if needed
+    if dirchanged_zigzagC or width != width[1] or (dir_ZigzagC == 1 and (array.get(zigzagC, 0) != array.get(oldzigzag, 0) or array.get(zigzagC, 1) != array.get(oldzigzag, 1)))
+        uptbroken := false
+        uptbroken := draw_up_circle(radius_up)
+    
+    // draw downtrend circle if needed
+    if dirchanged_zigzagC or width != width[1] or (dir_ZigzagC == -1 and (array.get(zigzagC, 0) != array.get(oldzigzag, 0) or array.get(zigzagC, 1) != array.get(oldzigzag, 1)))
+        downtbroken := false
+        downtbroken := draw_down_circle(radius_down)            
+    
+    // calculate/check and draw part of uptrend circle for last last
+    if not uptbroken
+        ind = dir_ZigzagC == 1 ? 0 : 2
+        yloc = array.get(zigzagC, ind) - calc_pos_circle_rad(array.get(zigzagC, ind), array.get(zigzagC, ind + 1), radius_up, bar_index)
+        if not na(yloc) and close >= yloc
+            uptexist := true
+            lasty = array.get(zigzagC, ind) - calc_pos_circle_rad(array.get(zigzagC, ind), array.get(zigzagC, ind + 1), radius_up, bar_index - 1)
+            
+        if not na(yloc) and close < yloc
+            uptbroken := true
+    
+    // calculate/check and draw part of downtrend circle for last last
+    if not downtbroken
+        ind = dir_ZigzagC == 1 ? 2 : 0
+        yloc = array.get(zigzagC, ind) + calc_pos_circle_rad(array.get(zigzagC, ind), array.get(zigzagC, ind + 1), radius_down, bar_index)
+        if not na(yloc) and close <= yloc
+            downtexist := true
+            lasty = array.get(zigzagC, ind) + calc_pos_circle_rad(array.get(zigzagC, ind), array.get(zigzagC, ind + 1), radius_down, bar_index - 1)
+            
+        if not na(yloc) and close > yloc
+            downtbroken := true
+
+var BO_ZigzagC_long = false
+exit_BO_ZigzagC_long = false
+if downtexist[1] and not downtexist and uptexist
+    BO_ZigzagC_long := true
+if BO_ZigzagC_long and downtexist
+    BO_ZigzagC_long := false
+    exit_BO_ZigzagC_long := true
+var BO_ZigzagC_short = false
+exit_BO_ZigzagC_short = false
+if uptexist[1] and not uptexist and downtexist
+    BO_ZigzagC_short := true
+if BO_ZigzagC_short and uptexist
+    BO_ZigzagC_short := false
+    exit_BO_ZigzagC_short := true
+
+
+//                                                      BIG BREAKOUT FINDER
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒   
+
+prd_bof = 10 // PERIOD
+bof_len = 3000 // MAX BO LENGTH
+cwidthu_bof = 1./100 // TRESHOLD RATE %
+mintest_bof = 3 // MINIMUM NUMBER OF TESTS
+
+//width
+lll_bof = max(min(bar_index, 300), 1)
+float h__bof = highest(lll_bof)
+float l__bof = lowest(lll_bof)
+float chwidth = (h__bof - l__bof) * cwidthu_bof
+
+// check if PH/PL
+ph_bof = pivothigh(prd_bof, prd_bof)
+pl_bof = pivotlow(prd_bof, prd_bof)
+
+//keep Pivot Points and their locations in the arrays
+var phval_bof = array.new_float(0)
+var phloc_bof = array.new_int(0)
+var plval_bof = array.new_float(0)
+var plloc_bof = array.new_int(0) 
+
+// keep ph_bof/pl_bof levels and locations
+if ph_bof
+    array.unshift(phval_bof, ph_bof)
+    array.unshift(phloc_bof, bar_index - prd_bof)
+    if array.size(phval_bof) > 1 // cleanup old ones
+        for x = array.size(phloc_bof) - 1 to 1
+            if bar_index - array.get(phloc_bof, x) > bof_len
+                array.pop(phloc_bof)
+                array.pop(phval_bof)
+        
+if pl_bof
+    array.unshift(plval_bof, pl_bof)
+    array.unshift(plloc_bof, bar_index - prd_bof)
+    if array.size(plval_bof) > 1 // cleanup old ones
+        for x = array.size(plloc_bof) - 1 to 1
+            if bar_index - array.get(plloc_bof, x) > bof_len
+                array.pop(plloc_bof)
+                array.pop(plval_bof)
+
+// check bullish cup
+float bomax = na
+int bostart = bar_index
+num_bof = 0
+hgst_bof = highest(prd_bof)[1] 
+if array.size(phval_bof) >= mintest_bof and close > open and close > hgst_bof
+    bomax := array.get(phval_bof, 0)
+    xx = 0
+    for x = 0 to array.size(phval_bof) - 1
+        if array.get(phval_bof, x) >= close
+            break
+        xx := x
+        bomax := max(bomax, array.get(phval_bof, x))
+    if xx >= mintest_bof and open <= bomax
+        for x = 0 to xx
+            if array.get(phval_bof, x) <= bomax and array.get(phval_bof, x) >= bomax - chwidth
+                num_bof += 1
+                bostart := array.get(phloc_bof, x)
+        if num_bof < mintest_bof or hgst_bof >= bomax
+            bomax := na
+ 
+
+// check bearish cup
+float bomin = na
+bostart := bar_index
+num1_bof = 0
+lwst = lowest(prd_bof)[1] 
+if array.size(plval_bof) >= mintest_bof and close < open and close < lwst
+    bomin := array.get(plval_bof, 0)
+    xx = 0
+    for x = 0 to array.size(plval_bof) - 1
+        if array.get(plval_bof, x) <= close
+            break
+        xx := x
+        bomin := min(bomin, array.get(plval_bof, x))
+    if xx >= mintest_bof and open >= bomin
+        for x = 0 to xx
+            if array.get(plval_bof, x) >= bomin and array.get(plval_bof, x) <= bomin + chwidth
+                num1_bof += 1
+                bostart := array.get(plloc_bof, x)
+        if num1_bof < mintest_bof or lwst <= bomin
+            bomin := na
+            
+
+
 //                                                              ACCOUNT
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒   
 
@@ -188,6 +429,12 @@ ACCOUNT_NET_PROFIT              = CONTRACTS_OPEN_USD - CONTRACTS_OPEN_USDX
 ACCOUNT_NET_PROFIT_CHANGE       = ACCOUNT_NET_PROFIT > ACCOUNT_NET_PROFIT[1] ? #00AA88CC  : ACCOUNT_NET_PROFIT < ACCOUNT_NET_PROFIT[1] ? color.red : #00000000
 ACCOUNT_TOTAL                   = strategy.initial_capital + ACCOUNT_NET_PROFIT
 ACCOUNT_PERCENT                 := ACCOUNT_TOTAL / strategy.initial_capital
+
+float FUNDING_FEES        = na
+FUNDING_FEES              := nz(FUNDING_FEES[1])
+
+if (hour == 02 and minute == 00) or (hour == 10 and minute == 00) or (hour == 18 and minute == 00)
+    FUNDING_FEES := FUNDING_FEES[1] + (0.001 * abs(CONTRACTS_OPEN_USD))
 
 //                                                              EXECUTION
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -232,6 +479,16 @@ PCP                         = plot(   iff(MODUS == "Position",close,na)     , co
 PWP                         = POSITION_STATUS == "LONG" ? POSITION_AVG_PRICE < close ? color.green : color.red : POSITION_STATUS == "SHORT" ? POSITION_AVG_PRICE > close ? color.green : color.red : color.purple //POSITION_AVG_PRICE > close ? color.green : color.red
 fill( PAP , PCP , color=PWP)
 
+//BO_LONG_ZZC = 
+plotshape((MODUS == "Position" and BO_ZigzagC_long and not BO_ZigzagC_long[1]), style = shape.triangleup, color = color.lime, location = location.belowbar, size = size.tiny)
+//plotshape(exit_BO_ZigzagC_long, style = shape.xcross, color = color.lime, location = location.abovebar, size = size.small)
+//BO_SHORT_ZZC = 
+plotshape((MODUS == "Position" and BO_ZigzagC_short and not BO_ZigzagC_short[1]), style = shape.triangledown, color = color.red, location = location.abovebar, size = size.tiny)
+//plotshape(exit_BO_ZigzagC_short, style = shape.xcross, color = color.red, location = location.belowbar, size = size.small)
+
+plotshape(MODUS == "Position" and (not na(bomax) and num_bof >= mintest_bof), location = location.belowbar, style  = shape.triangleup, color = color.green, size = size.small)
+plotshape(MODUS == "Position" and (not na(bomin) and num1_bof >= mintest_bof), location = location.abovebar, style  = shape.triangledown, color = color.red, size = size.small)
+
 //                                                              OPENINTEREST
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 LEVERAGE = CONTRACTS_OPEN_USD / ACCOUNT_TOTAL
@@ -242,6 +499,20 @@ PZE = plot( iff(MODUS == "OpenInterest",0,na) , color=#00000000)
 fill( POI , PZE , color=PWP)
 //plot(   iff(MODUS == "OpenInterest",CONTRACTS_OPEN_USDX,na)       , color=#AAAA88CC   , style= plot.style_stepline, offset=1)
 // plot(   iff(MODUS == "OpenInterest",CONTRACTS_OPEN_BTC,na)       , color=#CC8800CC   , style= plot.style_stepline, offset=1)
+
+MIN_LEVERAGE_LINE                    = lowest(LEVERAGE,1)
+MIN_LEVERAGE_LINE                    := MIN_LEVERAGE_LINE[1] > MIN_LEVERAGE_LINE ? MIN_LEVERAGE_LINE : MIN_LEVERAGE_LINE[1] < MIN_LEVERAGE_LINE ? MIN_LEVERAGE_LINE[1] : MIN_LEVERAGE_LINE
+plot(iff(MODUS == "OpenInterest",MIN_LEVERAGE_LINE,na), color=#00AA88CC,trackprice=true, show_last=1)
+MIN_LEVERAGELABEL               = label.new( iff(MODUS == "OpenInterest",bar_index ,na), MIN_LEVERAGE_LINE , 'Max short leverage '+tostring(MIN_LEVERAGE_LINE)+'%', color=#00AA8888, textcolor=color.white ,style=label.style_labeldown , yloc=yloc.price )
+label.delete(MIN_LEVERAGELABEL[1])
+
+MAX_LEVERAGE_LINE                    = highest(LEVERAGE,1)
+MAX_LEVERAGE_LINE                     := MAX_LEVERAGE_LINE [1] < MAX_LEVERAGE_LINE  ? MAX_LEVERAGE_LINE  : MAX_LEVERAGE_LINE [1] > MAX_LEVERAGE_LINE  ? MAX_LEVERAGE_LINE [1] : MAX_LEVERAGE_LINE 
+plot(iff(MODUS == "OpenInterest",MAX_LEVERAGE_LINE,na), color=#00AA88CC,trackprice=true, show_last=1)
+MAX_LEVERAGELABEL               = label.new( iff(MODUS == "OpenInterest",bar_index ,na), MAX_LEVERAGE_LINE , 'Max long leverage '+tostring(MAX_LEVERAGE_LINE)+'%', color=#00AA8888, textcolor=color.white ,style=label.style_labeldown , yloc=yloc.price )
+label.delete(MAX_LEVERAGELABEL[1])
+
+plot(iff(MODUS == "OpenInterest",0,na)       , color=color.gray  , style= plot.style_stepline, linewidth=1, offset=1)
 
 //                                                              DRAWDOWN
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ // USE LOW AND HIGH NOT CLOSED FOR EXTREMA 
@@ -263,7 +534,8 @@ plot(iff(MODUS == "Drawdown",DRAWAVG,na), color=#FFAA88CC)
 //                                                              PROFITNLOSS
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 
-ACCOUNT_PROFIT_PLOT         = plot(iff(MODUS == "PNL",ACCOUNT_NET_PROFIT,na)       , color=color.gray  , style= plot.style_stepline, linewidth=1, offset=1)
+ACCOUNT_PROFIT_PLOT         = plot(iff(MODUS == "PNL",ACCOUNT_NET_PROFIT - FUNDING_FEES,na)       , color=color.gray  , style= plot.style_stepline, linewidth=1, offset=1)
 ACCOUNT_ZERO_PLOT           = plot(iff(MODUS == "PNL",0,na)       , color=color.gray  , style= plot.style_stepline, linewidth=1, offset=1)
 ACCOUNT_INITIAL_PLOT        = plot(iff(MODUS == "PNL",0 - strategy.initial_capital,na)       , color=color.white  , style= plot.style_stepline, linewidth=1, offset=1)
 fill(ACCOUNT_PROFIT_PLOT,ACCOUNT_ZERO_PLOT, color=ACCOUNT_NET_PROFIT_CHANGE,transp=0)
+
