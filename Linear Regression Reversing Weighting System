@@ -1,0 +1,55 @@
+//@version=4
+study("Linear Regression Reversing Weighting System", overlay = true, max_bars_back = 1000, max_lines_count = 500)
+
+// LEADING COEFF OF THE LINEAR REGRESSION (=TREND) IS IN BLUE (slope)
+// THE SCRIPT FIND REVERSING OF THE LINEAR REGRESSION
+// slopeto0 IS A a/x² FUNCTION OF THE SLOPE. THIS GIVES LIKE AN EXPONENTIAL VALUE WHEN slope IS CROSSING 0 AND THE TREND IS REVERSING
+// IT CAN BE USED TO WEIGHT
+// NOTICE THAT THE FUNCTION IS ARBITRARY AND THE a = 100 and -100 IS TOTALLY ARBITRARY TOO
+// TO KEEP IT GOOD ONLY FOR BIG REVERSAL, THERE IS A CONDTION ABOUT HIGHEST/LOWEST slope SINCE THE LAST 0 CROSSING
+// AGAIN THE LIMIT VALUES OF HIGHEST AND LOWEST ARE ARBITRARY TOO
+// IT NEEDS TO BE USED WITH YOUR SCRIPT, THE BUYING AND SELLING ARE FROM YOUR SCRIPT, THIS IS JUST FOR WEIGHTING, ONLY READ IT WITH YOUR SCRIPT SIGNAL
+// FEEL FREE TO MODIFY ALL YOU WANT
+
+slope = linreg(close, 1500, 0) - linreg(close, 1500, 1)
+
+plot(slope, color= color.blue)
+
+
+var float slopeto0 = na
+if slope < 0
+    slopeto0 := (-100/slope)/slope
+if slope > 0
+    slopeto0 := (100/slope)/slope
+
+if slopeto0 > 200
+    slopeto0 := 200
+if slopeto0 < -200
+    slopeto0 := -200
+
+plot(0, color = color.white)
+
+
+highlow_sinceslopecross0(range) =>
+    highlow_slope = (slope > 3.5) or (slope < -3.5)
+    conditionslope_true = 0
+    slopecross0 = crossover(slope,0) or crossunder(slope,0)
+    for i = 1 to range by 1
+		if slopecross0[i]
+		    break
+		if highlow_slope[i]
+		    conditionslope_true := 1
+    conditionslope_true
+
+condition_highlowslope = highlow_sinceslopecross0(4000)
+
+trendreversing_condition_long = 0
+if condition_highlowslope == 1 and slopeto0 < -11 and (slopeto0 < slopeto0[1] or slopeto0 < -30)
+    trendreversing_condition_long := 1
+
+trendreversing_condition_short = 0
+if condition_highlowslope == 1 and slopeto0 > 11 and (slopeto0 > slopeto0[1] or slopeto0 > 30)
+    trendreversing_condition_short := 1
+
+plot(iff(trendreversing_condition_long == 1, -slopeto0, 0), color = color.green)
+plot(iff(trendreversing_condition_short == 1, -slopeto0, 0), color = color.red)
