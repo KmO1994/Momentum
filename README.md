@@ -1,6 +1,6 @@
 # Momentum
 Momentum based algorithm.
-![Preview of strategy](https://raw.githubusercontent.com/CMYKSCRIPTS/Momentum/main/PREVIEW.png)
+![Preview of strategy](https://raw.githubusercontent.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/PREVIEW.png)
 ## Core Properties
 ### Fluid transformations
 Short motivation for fluid transformations vs arbitrary settings
@@ -11,6 +11,7 @@ Add formula and image.
 Add formula and image
 // Focus Should be adjustable
 #### Macro trending bias
+![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Trending%20transformation.png)
 Add formula and image, Use-case examples
 #### Macro to micro focus
 Add formula and image, Use-case examples
