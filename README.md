@@ -1,6 +1,6 @@
 # Momentum
 Momentum based algorithm.
-![Preview of strategy](https://raw.githubusercontent.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/PREVIEW.png)
+![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/PREVIEW.png)
 ## Core Properties
 ### Fluid transformations
 Short motivation for fluid transformations vs arbitrary settings
