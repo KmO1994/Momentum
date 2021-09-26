@@ -13,8 +13,8 @@ Add formula and image
 #### Macro trending bias
 A factor (a) limited from -1 to 1 will be applied on the iterates with following formula:
 ![Trending Transformation](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Trending%20transformation.png)
-'''A note here is that a percental based (a) would have its limits from -1 to ∞
-If this is what should be applied, the math of the formula needs to be changed.'''
+> A note here is that a percental based (a) would have its limits from -1 to ∞
+If this is what should be applied, the math of the formula needs to be changed.
 
 This transformation could be applied flat to all iterates.
 But this could mean an unjust bias is applied to the smaller momentum lenghts.
