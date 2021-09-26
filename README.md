@@ -11,8 +11,12 @@ Add formula and image.
 Add formula and image
 // Focus Should be adjustable
 #### Macro trending bias
-![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Trending%20transformation.png)
-Add formula and image, Use-case examples
+![Trending Transformation](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Trending%20transformation.png)
+This transformation could be applied flat to all iterates.
+But this could mean an unjust bias is applied to the smaller momentum lenghts.
+A simple proposition to improve this, is applying a decay curve to the bias factor.
+A complex curve could later be calculated to deviate from this decay curve based on lenghty backtesting and optimization results.
+![Trending Transformation Temporal decay curve](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Tranding%20transformation%20with%20temporal%20bias%20curve.png)
 #### Macro to micro focus
 Add formula and image, Use-case examples
 
