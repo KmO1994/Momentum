@@ -19,7 +19,7 @@ If this is what should be applied, the math of the formula needs to be changed a
 > This transformation could be applied flat to all iterates.
 But this could mean an unjust bias is applied to the smaller momentum lenghts.
 A simple proposition to improve this, is applying a decay curve to the bias factor.
-A complex curve could later be calculated to deviate from this decay curve based on lenghty backtesting and optimization results.
+A complex curve could later be calculated to deviate from this decay curve based on lenghty backtesting and optimization results with ML.
 ![Trending Transformation Temporal decay curve](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Tranding%20transformation%20with%20temporal%20bias%20curve.png)
 > An example of the decay curve
 
