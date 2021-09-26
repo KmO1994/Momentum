@@ -1,7 +1,15 @@
 # Momentum
-Momentum based algorithm.
-![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/PREVIEW.png)
+
+![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/PREVIEW.png?raw=true)
 ## Core Properties
+### Splitting Momentum lenghts up in iterates
+> The reason to do this is reducing the amount of calculations the script goes through, to keep it within the limits of PineScript.
+
+> The iterates will split up momentum lenghts from the largest available **5400** to the smallest usefull **approx 30**
+
+> This can be done Linear, dividing the steps equally, Logarithmic or Exponential.
+
+> Favor goes out to  Logarithmic or Exponential, as longer momentum lenghts equal each other more.
 ### Fluid transformations
 Short motivation for fluid transformations vs arbitrary settings
 #### Triggering entries
@@ -20,12 +28,13 @@ If this is what should be applied, the math of the formula needs to be changed a
 
 > This transformation could be applied flat to all iterates.
 But this could mean an unjust bias is applied to the smaller momentum lenghts.
-A simple proposition to improve this, is applying a decay curve to the bias factor.
+
+> A simple proposition to improve this, is applying a decay curve to the bias factor.
 A complex curve could later be calculated to deviate from this decay curve based on lenghty backtesting and optimization results with ML.
 
 ![Trending Transformation Temporal decay curve](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Tranding%20transformation%20with%20temporal%20bias%20curve.png?raw=true)
 
-> An example of the decay curve
+> An example of the decay curve, simple and measured.
 
 ![Trending Transformation Temporal decay curve example](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Trending%20transformation%20temporal%20bias%20curve%20example.png?raw=true)
 
