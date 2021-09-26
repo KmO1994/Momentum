@@ -1,6 +1,6 @@
 # Momentum
 
-![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/PREVIEW.png?raw=true)
+![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/MainPreview.png?raw=true)
 ## Core Properties
 ### Splitting Momentum lenghts up in iterates
 > The reason to do this is reducing the amount of calculations the script goes through, to keep it within the limits of PineScript.
@@ -9,7 +9,12 @@
 
 > This can be done Linear, dividing the steps equally, Logarithmic or Exponential.
 
-> Favor goes out to  Logarithmic or Exponential, as longer momentum lenghts equal each other more.
+> Favor goes out to Exponential, as longer momentum lenghts equal each other more.
+
+![Preview of strategy](https://github.com/CMYKSCRIPTS/Momentum/blob/MASTER/DOCS/Exponential%20iterates.png?raw=true)
+
+> In the above image you see momentum indexed from -1 to 1 colored red to green, split exponentially in rows of each iterate lenght.
+
 ### Fluid transformations
 Short motivation for fluid transformations vs arbitrary settings
 #### Triggering entries
