@@ -31,10 +31,10 @@ PULSE_LENGHT            = 32 //input( defval=32          , minval=0.0           
 PULSE_HI			    = input( defval=0.25        , minval=0.0                , step=0.05             , type=input.float      , title="Pulse High"            ) // REPLACE WITH RANGE, APPLY BIAS WITH TRENDING TRANSFORMATION
 PULSE_LO			    = input( defval=-0.25       , maxval=0.0                , step=0.05             , type=input.float      , title="Pulse Low"             ) 
 
-//                                                              VALUATION
+//                                                              TRENDING CORRECTION TEST
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-
-
+a   			        = input( defval=0.000        , minval=-1,maxval=1              , step=0.005            , type=input.float      , title="a"          )	
+    
 
 //                                                                              FUNCTIONS
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
@@ -63,11 +63,17 @@ ARMI( SOURCE , LENGHT , MOMENTUM )=> // USES LINEAR VALUES , MAKE WITH LOG VALUE
 SCALAR( ITERATION )=>
     iff( SCOPE_GRADATION == "Linear" , ( SCOPE_MAX - (( SCOPE_MAX / 32 ) * ITERATION)) / SCOPE_RATIO , SCOPE_MAX / pow( SCOPE_RATIO , ITERATION ) )
 
+//                      TREND CORRECTION
+//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+TRENDING(y,a)=>
+    b = a == 0 ? 1 : a / abs(a)
+    x = ((2*(pow((y+1)/2,-b*(pow(a-b,-b))))-1) + -(2*(pow((-y+1)/2,b*(pow(b-a,b))))-1))/2
+    
 //                      PIXELING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 PIXEL( SOURCE , ITERATION )=> 
 	LENGHT              = SCALAR( ITERATION )
-	return              = ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) )
+	return              = TRENDING(ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) ),a)//ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) )//
 
 //                      SHADING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
@@ -80,7 +86,7 @@ SHADE(x)=>
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 GRADE( iterate )=>
     iterate == 1 ? 2 : iterate == 2 ? 2.4 : iterate == 3 ? 2.8 : iterate == 4 ? 3.2 : iterate == 5 ? 3.4 : iterate == 6 ? 3.2 : iterate == 7 ? 3.0 : iterate == 8 ? 2.8 : iterate == 9 ? 2.6 : iterate == 10 ? 2.4 : iterate == 11 ? 2.2 : iterate == 12 ? 2.0 : iterate == 13 ? 1.85 : iterate == 12 ? 1.7 : iterate == 13 ? 1.6 : iterate == 12 ? 1.4 : iterate == 13 ? 1.3 : iterate == 14 ? 1.1 : iterate == 15 ? 1 : iterate == 16 ? 0.9 : iterate == 17 ? 0.8 : iterate == 18 ? 0.7 : iterate == 19 ? 0.6 : iterate == 20 ? 0.5 : iterate == 21 ? 0.4 : iterate == 22 ? 0.3 : iterate == 23 ? 0.2 : iterate == 24 ? 0.1 : iterate > 24 ? 0 : 0
-    
+
 //                      VALUATE
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 VALUATE( Series )=>
@@ -88,12 +94,13 @@ VALUATE( Series )=>
     posvalue            = 0.0
     negvalue            = 0.0
     
-    for i=1 to 25 //WHY 25 ?
+    for i=1 to 25 // 1 to and 24, is to 25
         a = PIXEL( Series , i )
         posvalue := posvalue + ( (a>0?a:0) * GRADE(i) )
         negvalue := negvalue + ( (a<0?a:0) * GRADE(i) )
         
     floorvalue          := PIXEL( close , 32 ) > 0 ? pow(posvalue,2) : - pow(negvalue,2)
+
 
 //                                                                              STRATEGY
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
