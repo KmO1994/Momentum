@@ -244,14 +244,17 @@ POSITION_AVG_PRICE              := CONTRACTS_OPEN_USD / CONTRACTS_OPEN_BTC // IC
 
 ACCOUNT_NET_PROFIT              = CONTRACTS_OPEN_USD - CONTRACTS_OPEN_USDX
 ACCOUNT_NET_PROFIT_CHANGE       = ACCOUNT_NET_PROFIT > ACCOUNT_NET_PROFIT[1] ? #00AA88CC  : ACCOUNT_NET_PROFIT < ACCOUNT_NET_PROFIT[1] ? color.red : #00000000
-ACCOUNT_TOTAL                   = strategy.initial_capital + ACCOUNT_NET_PROFIT
-ACCOUNT_PERCENT                 := ACCOUNT_TOTAL / strategy.initial_capital
 
 float FUNDING_FEES              = na
 FUNDING_FEES                    := nz(FUNDING_FEES[1])
 
+//!!! PLACEMENT FEES TAKER FEES
+
 if (hour == 02 and minute == 00) or (hour == 10 and minute == 00) or (hour == 18 and minute == 00) // DOESNT WORK ON 4H 6H 8H 12H D
     FUNDING_FEES := FUNDING_FEES[1] + (0.0001 * abs(CONTRACTS_OPEN_USD))
+
+ACCOUNT_TOTAL                   = strategy.initial_capital + ACCOUNT_NET_PROFIT - FUNDING_FEES //REDUCED BY FUNDING FEES !!!!!!!! AND PLACEMENT FEES
+ACCOUNT_PERCENT                 := ACCOUNT_TOTAL / strategy.initial_capital
 
 //                                                              EXECUTION
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
