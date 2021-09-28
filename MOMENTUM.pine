@@ -28,12 +28,12 @@ SCOPE_MIN               = iff( SCOPE_GRADATION == "Linear" , SCOPE_MAX / 32 , SC
 //                                                              TRIGGERING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 PULSE_LENGHT            = 32 //input( defval=32          , minval=0.0                , step=2                , type=input.float      , title="Pulse momentum"        ) // REPRESENTS ITERATE SHOWN IN SCOPE, NOT PULSE LENGHT
-PULSE_HI			    = 0.30//input( defval=0.25        , minval=0.0                , step=0.05             , type=input.float      , title="Pulse High"            ) // REPLACE WITH RANGE, APPLY BIAS WITH TRENDING TRANSFORMATION
-PULSE_LO			    = -0.30//input( defval=-0.25       , maxval=0.0                , step=0.05             , type=input.float      , title="Pulse Low"             ) 
+PULSE_HI			    = input( defval=0.20        , minval=0.0                , step=0.05             , type=input.float      , title="Pulse High"            ) // REPLACE WITH RANGE, APPLY BIAS WITH TRENDING TRANSFORMATION
+PULSE_LO			    = input( defval=-0.20       , maxval=0.0                , step=0.05             , type=input.float      , title="Pulse Low"             ) 
 
 //                                                              TRENDING CORRECTION TEST
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-a   			        = input( defval=-0.05        , minval=-1,maxval=1              , step=0.01            , type=input.float      , title="a"          )	
+a   			        = input( defval=-0.06        , minval=-1,maxval=1              , step=0.01            , type=input.float      , title="a"          )	
    
 //                                                              STATISTICS
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
