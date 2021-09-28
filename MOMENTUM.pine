@@ -28,13 +28,16 @@ SCOPE_MIN               = iff( SCOPE_GRADATION == "Linear" , SCOPE_MAX / 32 , SC
 //                                                              TRIGGERING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 PULSE_LENGHT            = 32 //input( defval=32          , minval=0.0                , step=2                , type=input.float      , title="Pulse momentum"        ) // REPRESENTS ITERATE SHOWN IN SCOPE, NOT PULSE LENGHT
-PULSE_HI			    = input( defval=0.25        , minval=0.0                , step=0.05             , type=input.float      , title="Pulse High"            ) // REPLACE WITH RANGE, APPLY BIAS WITH TRENDING TRANSFORMATION
-PULSE_LO			    = input( defval=-0.25       , maxval=0.0                , step=0.05             , type=input.float      , title="Pulse Low"             ) 
+PULSE_HI			    = //input( defval=0.25        , minval=0.0                , step=0.05             , type=input.float      , title="Pulse High"            ) // REPLACE WITH RANGE, APPLY BIAS WITH TRENDING TRANSFORMATION
+PULSE_LO			    = //input( defval=-0.25       , maxval=0.0                , step=0.05             , type=input.float      , title="Pulse Low"             ) 
 
 //                                                              TRENDING CORRECTION TEST
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 a   			        = input( defval=0.000        , minval=-1,maxval=1              , step=0.005            , type=input.float      , title="a"          )	
-    
+   
+//                                                              STATISTICS
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+STATS_SHOW              = input(true, title="Show statistics", type=input.bool)    
 
 //                                                                              FUNCTIONS
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
@@ -51,36 +54,45 @@ RMA( SERIES , LENGHT )=>
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      AUGMENTED RELATIVE MOMENTUM INDEX
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-ARMI( SOURCE , LENGHT , MOMENTUM )=> // USES LINEAR VALUES , MAKE WITH LOG VALUES LIKE CHART SCALING
+ARMI( SOURCE , LENGHT , MOMENTUM )=>
     INC                 = RMA( max( SOURCE                  - sma(SOURCE,MOMENTUM*2), 0 )    , LENGHT)
     DEC                 = RMA( max( sma(SOURCE,MOMENTUM*2)  - SOURCE                , 0 )    , LENGHT)
     RMI                 = DEC   == 0.0  ? 0.0     : -(INC-DEC)/(INC+DEC)
 
-//                                                              GRAPHICAL
+//                                                              SCALING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      SCALAR Y VALUE
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 SCALAR( ITERATION )=>
     iff( SCOPE_GRADATION == "Linear" , ( SCOPE_MAX - (( SCOPE_MAX / 32 ) * ITERATION)) / SCOPE_RATIO , SCOPE_MAX / pow( SCOPE_RATIO , ITERATION ) )
 
+//                                                              CORRECTIONS
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      TREND CORRECTION
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 TRENDING(y,a)=>
     b = a == 0 ? 1 : a / abs(a)
     x = ((2*(pow((y+1)/2,-b*(pow(a-b,-b))))-1) + -(2*(pow((-y+1)/2,b*(pow(b-a,b))))-1))/2
-    
+
+//                      VOLATILITY CORRECTION
+//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+
+//                                                              GRAPHICAL
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      PIXELING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 PIXEL( SOURCE , ITERATION )=> 
 	LENGHT              = SCALAR( ITERATION )
 	return              = TRENDING(ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) ),a)//ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) )//
 
+//                                                              GRAPHICAL
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      SHADING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 SHADE(x)=>
     out                 = x>0.96875?#ffa9e0FF:x>0.9375?#ffa6dcF0:x>0.90625?#fe9ed8E8:x>0.875?#fc97d1E0:x>0.84375?#fa90caD8:x>0.8125?#fa8bc3D0:x>0.78125?#f37db0C8:x>0.75?#ee74a3C0:x>0.71875?#e96d98B8:x>0.6875?#e46890B0:x>0.65625?#db6083A8:x>0.625?#d65a7aA0:x>0.59375?#cb506c98:x>0.5625?#c44a6390:x>0.53125?#ba465b88:x>0.5?#b6475a80:x>0.46875?#b14a5d78:x>0.4375?#ae4d5e70:x>0.40625?#aa506168:x>0.375?#a7536360:x>0.34375?#a3576658:x>0.3125?#9f5a6750:x>0.28125?#9b5e6a48:x>0.25?#97616c40:x>0.21875?#94646d38:x>0.1875?#8f677030:x>0.15625?#8c6a7128:x>0.125?#896d7220:x>0.09375?#86707518:x>0.0625?#84737610:x>0.03125?#80767908:x<-0.96875?#b9fdceFF:x<-0.9375?#affcc9F0:x<-0.90625?#a6fac5E8:x<-0.875?#9cf7c1E0:x<-0.84375?#90f3baD8:x<-0.8125?#87f0b6D0:x<-0.78125?#7aeab1C8:x<-0.75?#71e5adC0:x<-0.71875?#67e0abB8:x<-0.6875?#5dd9a4B0:x<-0.65625?#55d29fA8:x<-0.625?#50cc9dA0:x<-0.59375?#4ac59a98:x<-0.5625?#46be9790:x<-0.53125?#44b79588:x<-0.5?#48b39480:x<-0.46875?#4baf9278:x<-0.4375?#4fab9070:x<-0.40625?#52a88f68:x<-0.375?#55a48e60:x<-0.34375?#599f8c58:x<-0.3125?#5d9c8b50:x<-0.28125?#60988948:x<-0.25?#63938740:x<-0.21875?#678f8438:x<-0.1875?#67908530:x<-0.15625?#6e888128:x<-0.125?#6e888120:x<-0.09375?#74827f18:x<-0.0625?#75817d10:x<-0.03125?#7b7b7b08:invisible
 
-//                                                              VALUATION
+//                                                              WEIGHTING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //                      GRADING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
@@ -101,20 +113,26 @@ VALUATE( Series )=>
         
     floorvalue          := PIXEL( close , 32 ) > 0 ? pow(posvalue,2) : - pow(negvalue,2)
 
+//                                                              TRIGGERING
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+//                      PULSE
+//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+PULSE( Series )=>
+    PIXEL( (Series-sma(Series,50)) , PULSE_LENGHT ) //WHAT IS THIS SMA50 STUFF ?
 
 //                                                                              STRATEGY
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 //                                                              WEIGHTING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 TVAL                    = strategy.initial_capital
-XVAL                    = -VALUATE(close)                            // NEEDS TO VALUATE FROM NEUTRAL TO UP, NOT ALL
+XVAL                    = -VALUATE((close-sma(close,50))) //WHAT IS THIS SMA50 STUFF ?
 float ACCOUNT_PERCENT   = 1
 ACCOUNT_PERCENT         := fixnan(ACCOUNT_PERCENT[1])
 XVAL                    := XVAL * ACCOUNT_PERCENT
 
 //                                                              TRIGGERING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-PULSE                   = PIXEL( close , PULSE_LENGHT )
+PULSE                   = PULSE(close)
 LONG                    = PULSE > PULSE_HI ? true : false
 SHORT                   = PULSE < PULSE_LO ? true : false
 
@@ -220,9 +238,6 @@ if (TIME_ALLOW and SHORT)
 
 //                                                              TRIGGERING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-// plotshape(TIME_ALLOW and LONG[1] and MODUS == "Position", color=color.blue, style=shape.triangleup,size=size.tiny, location=location.belowbar)
-// plotshape(TIME_ALLOW and SHORT[1] and MODUS == "Position", color=color.red, style=shape.triangledown,size=size.tiny, location=location.abovebar)
-
 float longprice             = na
 longprice                   := iff(TIME_ALLOW and MODUS == "Position" and LONG[1], open, na)
 float shortprice            = na
@@ -280,3 +295,46 @@ ACCOUNT_PROFIT_PLOT         = plot(iff(MODUS == "PNL",ACCOUNT_NET_PROFIT - FUNDI
 ACCOUNT_ZERO_PLOT           = plot(iff(MODUS == "PNL",0,na)       , color=color.gray  , style= plot.style_stepline, linewidth=1, offset=1)
 ACCOUNT_INITIAL_PLOT        = plot(iff(MODUS == "PNL",0 - strategy.initial_capital,na)       , color=color.white  , style= plot.style_stepline, linewidth=1, offset=1)
 fill(ACCOUNT_PROFIT_PLOT,ACCOUNT_ZERO_PLOT, color=ACCOUNT_NET_PROFIT_CHANGE,transp=0)
+
+//                                                              STATISTICS
+//▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+STATS_OFFSET    =   MODUS == "Position" ? size.huge : size.normal
+if STATS_SHOW 
+    var Table = table.new(position.top_left, columns = 2, rows = 16, border_width = 1, bgcolor = #FFFFFFBB, border_color = #00000000)
+    table.cell(table_id = Table, column = 0, row = 0, text_size = STATS_OFFSET, text_color=#80808080, text_halign=text.align_left,  bgcolor=#00000000, text = "")
+    table.cell(table_id = Table, column = 1, row = 0, text_size = STATS_OFFSET, text_color=#80808080, text_halign=text.align_right, bgcolor=#00000000, text = "")
+    table.cell(table_id = Table, column = 0, row = 1, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#80808080, text = "𝗜𝗻𝗶𝘁𝗶𝗮𝗹 𝗖𝗮𝗽𝗶𝘁𝗮𝗹")
+    table.cell(table_id = Table, column = 1, row = 1, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = tostring(strategy.initial_capital) + " USD")
+    table.cell(table_id = Table, column = 0, row = 2, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#80808080, text = "𝗡𝗲𝘁 𝗣𝗿𝗼𝗳𝗶𝘁")
+    table.cell(table_id = Table, column = 1, row = 2, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = tostring(int(ACCOUNT_NET_PROFIT - FUNDING_FEES)) + " USD")
+    table.cell(table_id = Table, column = 0, row = 3, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗚𝗿𝗼𝘀𝘀 𝗣𝗿𝗼𝗳𝗶𝘁")
+    table.cell(table_id = Table, column = 1, row = 3, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = tostring(int(ACCOUNT_NET_PROFIT)) + " USD")
+    table.cell(table_id = Table, column = 0, row = 4, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗚𝗿𝗼𝘀𝘀 𝗟𝗼𝘀𝘀")
+    table.cell(table_id = Table, column = 1, row = 4, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " USD")
+    table.cell(table_id = Table, column = 0, row = 5, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗧𝘂𝗿𝗻𝗼𝘃𝗲𝗿")
+    table.cell(table_id = Table, column = 1, row = 5, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " USD")
+    table.cell(table_id = Table, column = 0, row = 6, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗖𝗼𝗺𝗶𝘀𝘀𝗶𝗼𝗻 𝗙𝗲𝗲𝘀")
+    table.cell(table_id = Table, column = 1, row = 6, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " USD")
+    table.cell(table_id = Table, column = 0, row = 7, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗙𝘂𝗻𝗱𝗶𝗻𝗴 𝗙𝗲𝗲𝘀")
+    table.cell(table_id = Table, column = 1, row = 7, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = tostring(int(FUNDING_FEES)) + " USD")
+    table.cell(table_id = Table, column = 0, row = 8, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗠𝗮𝘅 𝗗𝗿𝗮𝘄𝗱𝗼𝘄𝗻")
+    table.cell(table_id = Table, column = 1, row = 8, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = tostring(DRAWLINE) + " %")
+    table.cell(table_id = Table, column = 0, row = 9, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗠𝗮𝘅 𝗢𝗽𝗲𝗻𝗜𝗻𝘁𝗲𝗿𝗲𝘀𝘁")
+    table.cell(table_id = Table, column = 1, row = 9, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " USD")
+    table.cell(table_id = Table, column = 0, row = 10, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗠𝗮𝘅 𝗟𝗲𝘃𝗲𝗿𝗮𝗴𝗲")
+    table.cell(table_id = Table, column = 1, row = 10, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " x")
+    table.cell(table_id = Table, column = 0, row = 11, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗟𝗶𝗾𝘂𝗶𝗱𝗮𝘁𝗶𝗼𝗻")
+    table.cell(table_id = Table, column = 1, row = 11, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing")
+    table.cell(table_id = Table, column = 0, row = 12, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗨𝗻𝗱𝗲𝗿𝘄𝗮𝘁𝗲𝗿 𝗥𝗮𝘁𝗶𝗼")
+    table.cell(table_id = Table, column = 1, row = 12, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " %")
+    table.cell(table_id = Table, column = 0, row = 13, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗛𝗢𝗗𝗟 𝗥𝗮𝘁𝗶𝗼")
+    table.cell(table_id = Table, column = 1, row = 13, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " %")
+    table.cell(table_id = Table, column = 0, row = 14, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗣𝗿𝗼𝗳𝗶𝘁 𝗥𝗮𝘁𝗶𝗼")
+    table.cell(table_id = Table, column = 1, row = 14, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " %")
+    table.cell(table_id = Table, column = 0, row = 15, text_size = size.small, text_color=color.black, text_halign=text.align_left,  bgcolor=#00000000, text = "𝗧𝗿𝗮𝗱𝗲 𝗥𝗮𝘁𝗶𝗼")
+    table.cell(table_id = Table, column = 1, row = 15, text_size = size.small, text_color=color.black, text_halign=text.align_right, bgcolor=#00000000, text = "Missing" + " %")
+    
+    
+    
+    
+    
