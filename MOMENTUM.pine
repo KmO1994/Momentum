@@ -104,15 +104,15 @@ SHADE(x)= >
 //GRADING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 GRADE( iterate )= >
-	iterate	 == 1 ?	0.857 :
-	 iterate == 2 ?	0.914 :
-	 iterate == 3 ?	0.958 :
-	 iterate == 4 ?	0.989 :
-	 iterate == 5 ?	1.000 :
-	 iterate == 6 ?	0.991 :
-	 iterate == 7 ?	0.963 :
-	 iterate == 8 ?	0.971 :
-	 iterate == 9 ?	0.856 :
+	iterate	 == 1 ?		0.857 :
+	 iterate == 2 ?		0.914 :
+	 iterate == 3 ?		0.958 :
+	 iterate == 4 ?		0.989 :
+	 iterate == 5 ?		1.000 :
+	 iterate == 6 ?		0.991 :
+	 iterate == 7 ?		0.963 :
+	 iterate == 8 ?		0.971 :
+	 iterate == 9 ?		0.856 :
 	 iterate == 10 ?	0.785 :
 	 iterate == 11 ?	0.707 :
 	 iterate == 12 ?	0.626 :
