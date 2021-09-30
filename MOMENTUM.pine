@@ -16,7 +16,7 @@ MODUS					= input( defval= "Scope"	, options= ["Scope", "Weighting", "Triggering
 //TIME_SESSION= input("0", type= input.session, title= "Sessions")
 TIME_DATE_START			= input( defval= timestamp("01 Jan 2018 00:00 +0000")								, type= input.time		, title= "Start Time"			)
 TIME_DATE_END			= input( defval= timestamp("01 Jan 2022 00:00 +0000")								, type= input.time		, title= "End Time"				)
-TIME_ALLOW				= time >= TIME_DATE_START and time <= TIME_DATE_END //and time(timeframe.period, TIME_SESSION)
+TIME_ALLOW				= time >=  TIME_DATE_START and time  <= TIME_DATE_END //and time(timeframe.period, TIME_SESSION)
 
 //SCOPE
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -27,7 +27,7 @@ SCOPE_MIN				= iff( SCOPE_GRADATION == "Linear" , SCOPE_MAX / 32 , SCOPE_MAX / p
 
 //TRIGGERING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-PULSE_LENGHT			= input( defval= 32				, minval= 0.0				, step= 2				, type= input.float		, title= "Pulse momentum"		) // REPRESENTS ITERATE SHOWN IN SCOPE, NOT PULSE LENGHT
+PULSE_LENGHT			= 32 //input( defval= 32				, minval= 0.0				, step= 2				, type= input.float		, title= "Pulse momentum"		) // REPRESENTS ITERATE SHOWN IN SCOPE, NOT PULSE LENGHT
 PULSE_HI				= input( defval= 0.25			, minval= 0.0				, step= 0.05			, type= input.float		, title= "Pulse High"			) // REPLACE WITH RANGE, APPLY BIAS WITH TRENDING TRANSFORMATION
 PULSE_LO				= input( defval= -0.25			, maxval= 0.0				, step= 0.05			, type= input.float		, title= "Pulse Low"			) 
 
@@ -37,14 +37,14 @@ a						= input( defval= -0.01			, minval= -1	, maxval= 1	, step= 0.01			, type= 
 
 //STATISTICS
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-STATS_SHOW				= input( defval= false																, type= input.bool		, title= "Show statistics"	
+STATS_SHOW				= input( defval= false																, type= input.bool		, title= "Show statistics"		)
 //																				FUNCTIONS
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 //															AVERAGING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //					ROLLING MOVING AVERAGE
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-RMA( SERIES , LENGHT )= >
+RMA( SERIES , LENGHT )=>
 	ALPHA				= 1 / LENGHT
 	float SUM			= na
 	SUM					:= ALPHA * SERIES + ( 1.0 - ALPHA ) * nz( SUM[1] )
@@ -53,7 +53,7 @@ RMA( SERIES , LENGHT )= >
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //					AUGMENTED RELATIVE MOMENTUM INDEX
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-ARMI( SOURCE , LENGHT , MOMENTUM )= >
+ARMI( SOURCE , LENGHT , MOMENTUM )=>
 	INC					= RMA( max( SOURCE- sma(SOURCE, MOMENTUM*2)	, 0 ), LENGHT)
 	DEC					= RMA( max( sma(SOURCE, MOMENTUM*2)- SOURCE	, 0 ), LENGHT)
 	RMI					= DEC == 0.0? 0.0 : -(INC-DEC)/(INC+DEC)
@@ -62,7 +62,7 @@ ARMI( SOURCE , LENGHT , MOMENTUM )= >
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //					SCALAR Y VALUE
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-SCALAR( ITERATION )= >
+SCALAR( ITERATION )=>
 	iff( SCOPE_GRADATION == "Linear" , ( SCOPE_MAX - (( SCOPE_MAX / 32 ) * ITERATION)) / SCOPE_RATIO , SCOPE_MAX / pow( SCOPE_RATIO , ITERATION ) )
 
 //																CORRECTIONS
@@ -77,7 +77,7 @@ len_reg					= input( defval= 1000			, minval= 1																	, title= "Length
 maxmin_length_factor	= input( defval= 5				, minval= 1											, type= input.integer	, title= "FactorofTrendlengthtogetmax/mintrendvalue")
 length_maxmin			= len_reg*maxmin_length_factor
 
-f_reg(length,y,x)= >
+f_reg(length,y,x)=>
 	x_					= ema(x,length)
 	y_					= ema(y,length)
 	mx					= stdev(x,length)
@@ -110,18 +110,18 @@ slope_min				= lowest(slope_normalized_b,length_maxmin)
 	
 slope_normalized_a		= (2*(slope_normalized_b-(slope_min-10))/((slope_max+10)-(slope_min-10))-1)
 
-ifslope_normalized_a>0
+if slope_normalized_a>0
 	a					:= -pow(slope_normalized_a,2)
-ifslope_normalized_a<0
+if slope_normalized_a<0
 	a					:= (pow(slope_normalized_a,2))
-ifslope_normalized_a == 0
+if slope_normalized_a == 0
 	a					:= -0.01
 
 
 
 //						TRENDCORRECTION
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-TRENDING( y  , a )= >
+TRENDING( y  , a )=>
 	b					= a == 0?1:a/abs(a)
 	x					= ((2*(pow((y+1)/2,-b*(pow(a-b,-b))))-1)+-(2*(pow((-y+1)/2,b*(pow(b-a,b))))-1))/2
 
@@ -132,58 +132,58 @@ TRENDING( y  , a )= >
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //						PIXELING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-PIXEL( SOURCE , ITERATION )= > 
+PIXEL( SOURCE , ITERATION )=> 
 	LENGHT				= SCALAR( ITERATION )
 	return				= TRENDING(ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) ), a)//ARMI( SOURCE , LENGHT , int( LENGHT / 10 ) )//
 
 //						SHADING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-SHADE( x )= >
+SHADE( x )=>
 	out					= x>0.96875?#ffa9e0FF:x>0.9375?#ffa6dcF0:x>0.90625?#fe9ed8E8:x>0.875?#fc97d1E0:x>0.84375?#fa90caD8:x>0.8125?#fa8bc3D0:x>0.78125?#f37db0C8:x>0.75?#ee74a3C0:x>0.71875?#e96d98B8:x>0.6875?#e46890B0:x>0.65625?#db6083A8:x>0.625?#d65a7aA0:x>0.59375?#cb506c98:x>0.5625?#c44a6390:x>0.53125?#ba465b88:x>0.5?#b6475a80:x>0.46875?#b14a5d78:x>0.4375?#ae4d5e70:x>0.40625?#aa506168:x>0.375?#a7536360:x>0.34375?#a3576658:x>0.3125?#9f5a6750:x>0.28125?#9b5e6a48:x>0.25?#97616c40:x>0.21875?#94646d38:x>0.1875?#8f677030:x>0.15625?#8c6a7128:x>0.125?#896d7220:x>0.09375?#86707518:x>0.0625?#84737610:x>0.03125?#80767908:x<-0.96875?#b9fdceFF:x<-0.9375?#affcc9F0:x<-0.90625?#a6fac5E8:x<-0.875?#9cf7c1E0:x<-0.84375?#90f3baD8:x<-0.8125?#87f0b6D0:x<-0.78125?#7aeab1C8:x<-0.75?#71e5adC0:x<-0.71875?#67e0abB8:x<-0.6875?#5dd9a4B0:x<-0.65625?#55d29fA8:x<-0.625?#50cc9dA0:x<-0.59375?#4ac59a98:x<-0.5625?#46be9790:x<-0.53125?#44b79588:x<-0.5?#48b39480:x<-0.46875?#4baf9278:x<-0.4375?#4fab9070:x<-0.40625?#52a88f68:x<-0.375?#55a48e60:x<-0.34375?#599f8c58:x<-0.3125?#5d9c8b50:x<-0.28125?#60988948:x<-0.25?#63938740:x<-0.21875?#678f8438:x<-0.1875?#67908530:x<-0.15625?#6e888128:x<-0.125?#6e888120:x<-0.09375?#74827f18:x<-0.0625?#75817d10:x<-0.03125?#7b7b7b08:#00000000
 
 //															WEIGHTING
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //						GRADING
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-GRADE (iterate )= >
+GRADE (iterate )=>
 	iterate == 1?	0.857:
-	iterate == 2?	0.914:
-	iterate == 3?	0.958:
-	iterate == 4?	0.989:
-	iterate == 5?	1.000:
-	iterate == 6?	0.991:
-	iterate == 7?	0.963:
-	iterate == 8?	0.971:
-	iterate == 9?	0.856:
-	iterate == 10?	0.785:
-	iterate == 11?	0.707:
-	iterate == 12?	0.626:
-	iterate == 13?	0.545:
-	iterate == 14?	0.466:
-	iterate == 15?	0.393:
-	iterate == 16?	0.326:
-	iterate == 17?	0.266:
-	iterate == 18?	0.214:
-	iterate == 19?	0.170:
-	iterate == 20?	0.133:
-	iterate == 21?	0.103:
-	iterate == 22?	0.078:
-	iterate == 23?	0.059:
-	iterate == 24?	0.043:
-	iterate == 25?	0.032:
-	iterate == 26?	0.023:
-	iterate == 27?	0.016:
-	iterate == 28?	0.012:
-	iterate == 29?	0.008:
-	iterate == 30?	0.006:
-	iterate == 31?	0.004:
-	iterate == 32?	0.000:
-	iterate == 33?	0.000:
-	0.000
+	 iterate == 2?	0.914:
+	 iterate == 3?	0.958:
+	 iterate == 4?	0.989:
+	 iterate == 5?	1.000:
+	 iterate == 6?	0.991:
+	 iterate == 7?	0.963:
+	 iterate == 8?	0.971:
+	 iterate == 9?	0.856:
+	 iterate == 10?	0.785:
+	 iterate == 11?	0.707:
+	 iterate == 12?	0.626:
+	 iterate == 13?	0.545:
+	 iterate == 14?	0.466:
+	 iterate == 15?	0.393:
+	 iterate == 16?	0.326:
+	 iterate == 17?	0.266:
+	 iterate == 18?	0.214:
+	 iterate == 19?	0.170:
+	 iterate == 20?	0.133:
+	 iterate == 21?	0.103:
+	 iterate == 22?	0.078:
+	 iterate == 23?	0.059:
+	 iterate == 24?	0.043:
+	 iterate == 25?	0.032:
+	 iterate == 26?	0.023:
+	 iterate == 27?	0.016:
+	 iterate == 28?	0.012:
+	 iterate == 29?	0.008:
+	 iterate == 30?	0.006:
+	 iterate == 31?	0.004:
+	 iterate == 32?	0.000:
+	 iterate == 33?	0.000:
+	 0.000
 
 //						VALUATE
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-VALUATE( Series )= >
+VALUATE( Series )=>
 	floorvalue				= 0.0
 	posvalue				= 0.0
 	negvalue				= 0.0
@@ -199,7 +199,7 @@ VALUATE( Series )= >
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 //						TRIGGER
 //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-TRIGGER( Series )= >
+TRIGGER( Series )=>
 	PIXEL( Series , PULSE_LENGHT ) 
 
 //																				STRATEGY
@@ -230,7 +230,7 @@ float CONTRACTS_OPEN_USDX	= na
 CONTRACTS_OPEN_USDX			:= nz(CONTRACTS_OPEN_USDX[1])
 
 string POSITION_STATUS		= CONTRACTS_OPEN_BTC > 0 ? "LONG" : CONTRACTS_OPEN_BTC < 0 ? "SHORT" : "NULL"
-floatPOSITION_SIZE_BTC		= CONTRACTS_OPEN_BTC
+float POSITION_SIZE_BTC		= CONTRACTS_OPEN_BTC
 
 float POSITION_AVG_PRICE	= na
 POSITION_AVG_PRICE			:= nz(POSITION_AVG_PRICE[1])
@@ -289,240 +289,239 @@ POSITION_AVG_PRICE			:= CONTRACTS_OPEN_USD / CONTRACTS_OPEN_BTC // ICLUDES PROFI
 
 //															BREAKOUTZZC
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒		
-prd_ZZ= 40//ZIGZAGPERIOD,MAX55
+prd_ZZ						= 40//ZIGZAGPERIOD,MAX55
 
-//checkhighest/lowestlevelsandcreatezigzag
-floatph_ZigzagC= highestbars(high,prd_ZZ) == 0?high:na
-floatpl_ZigzagC= lowestbars(low,prd_ZZ) == 0?low:na
-vardir_ZigzagC= 0
-dir_ZigzagC:= iff(ph_ZigzagCandna(pl_ZigzagC),1,iff(pl_ZigzagCandna(ph_ZigzagC),-1,dir_ZigzagC))
-varzigzagC= array.new_float(0)
-//keeplastpoint
-oldzigzag= array.new_float(2)
-ifarray.size(zigzagC)>1
+//check highest/lowest levels and create zigzag
+float ph_ZigzagC			= highestbars(high,prd_ZZ) == 0	? high	: na
+float pl_ZigzagC			= lowestbars(low,prd_ZZ) == 0	? low	: na
+var dir_ZigzagC				= 0
+dir_ZigzagC					:= iff(ph_ZigzagC and na(pl_ZigzagC),1,iff(pl_ZigzagC and na(ph_ZigzagC),-1,dir_ZigzagC))
+var zigzagC					= array.new_float(0)
+//keep last point
+oldzigzag					= array.new_float(2)
+if array.size(zigzagC) > 1
 	array.set(oldzigzag,0,array.get(zigzagC,0))
 	array.set(oldzigzag,1,array.get(zigzagC,1))
 	
-add_to_zigzagC(value,bindex)= >
+add_to_zigzagC(value,bindex)=>
 	array.unshift(zigzagC,bindex)
 	array.unshift(zigzagC,value)
-	ifarray.size(zigzagC)>8
+	if array.size(zigzagC) > 8
 		array.pop(zigzagC)
 		array.pop(zigzagC)
 	
-update_zigzagC(value,bindex)= >
-	ifarray.size(zigzagC) == 0
+update_zigzagC(value,bindex)=>
+	if array.size(zigzagC) == 0
 		add_to_zigzagC(value,bindex)
 	else
-		if(dir_ZigzagC == 1andvalue>array.get(zigzagC,0))or(dir_ZigzagC == -1andvalue<array.get(zigzagC,0))
+		if(dir_ZigzagC == 1 and value>array.get(zigzagC,0)) or (dir_ZigzagC == -1 and value < array.get(zigzagC,0))
 			array.set(zigzagC,0,value)
 			array.set(zigzagC,1,bindex)
 		0.
 
-dirchanged_zigzagC= dir_ZigzagC!= dir_ZigzagC[1]
-ifph_ZigzagCorpl_ZigzagC
-	ifdirchanged_zigzagC
+dirchanged_zigzagC			= dir_ZigzagC!= dir_ZigzagC[1]
+if ph_ZigzagC or pl_ZigzagC
+	if dirchanged_zigzagC
 		add_to_zigzagC(dir_ZigzagC == 1?ph_ZigzagC:pl_ZigzagC,bar_index)
 	else
 		update_zigzagC(dir_ZigzagC == 1?ph_ZigzagC:pl_ZigzagC,bar_index)
 
 
 //definitions
-width= (highest(292)-lowest(292))/107
-//togetridofconsistencywarning,keepcloseinaarray
-varcls= array.new_float(500,na)
+width						= (highest(292)-lowest(292))/107
+//to get rid of consistency warning , keep close in a array
+var cls						= array.new_float(500,na)
 array.unshift(cls,close)
 array.pop(cls)
 
-//calculatelocationofylevelinapoint
-calc_pos_circle_rad(center_y_lev,center_bindex,radius,cal_bindex)= >
-	loc_diff= abs(center_bindex-cal_bindex)
-	rad= sqrt(pow(radius,2)-pow(loc_diff*width,2))
+//calculate location o fylevel in a point
+calc_pos_circle_rad(center_y_lev,center_bindex,radius,cal_bindex)=>
+	loc_diff				= abs(center_bindex-cal_bindex)
+	rad						= sqrt(pow(radius,2)-pow(loc_diff*width,2))
 
-//drawuptrendcircleuntillastcandle
-draw_up_circle(radius)= >
-	ind= dir_ZigzagC == 1?0:2
-	nxt= dir_ZigzagC == 1?2:4
-	broken= false
-	ifbar_index-1>array.get(zigzagC,nxt+1)
-		last_x= round(array.get(zigzagC,nxt+1))
-		last_y= array.get(zigzagC,nxt)
-		forx= array.get(zigzagC,nxt+1)+1tobar_index-1
-			yloc= array.get(zigzagC,ind)-calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius,x)
-			ifna(yloc)
+//draw uptrend circle until last candle
+draw_up_circle(radius)=>
+	ind						= dir_ZigzagC == 1	? 0 : 2
+	nxt						= dir_ZigzagC == 1	? 2 : 4
+	broken					= false
+	if bar_index -1 > array.get( zigzagC , nxt +1 )
+		last_x				= round(array.get( zigzagC , nxt +1 ))
+		last_y				= array.get( zigzagC , nxt  )
+		for x				= array.get( zigzagC , nxt+1) +1 to bar_index -1
+			yloc			= array.get( zigzagC , ind  ) - calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius,x)
+			if na(yloc)
 				break
-			ifnotna(yloc)andarray.get(cls,round(bar_index-x))<yloc
-				broken:= true
+			if not na(yloc)and array.get(cls,round(bar_index-x))<yloc
+				broken		:= true
 				break
-			last_x:= last_x+1
-			last_y:= yloc
+			last_x			:= last_x+1
+			last_y			:= yloc
 	broken
 
-//drawdowntrendcircleuntillastcandle				
-draw_down_circle(radius)= >
-	ind= dir_ZigzagC == 1?2:0
-	nxt= dir_ZigzagC == 1?4:2
-	broken= false
-	ifbar_index-1>array.get(zigzagC,nxt+1)
-		last_x= round(array.get(zigzagC,nxt+1))
-		last_y= array.get(zigzagC,nxt)
-		forx= array.get(zigzagC,nxt+1)+1tobar_index-1
-			yloc= array.get(zigzagC,ind)+		calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius,x)
-			ifna(yloc)
+//drawdown trend circle until last candle				
+draw_down_circle(radius)=>
+	ind						= dir_ZigzagC == 1  ? 2 : 0
+	nxt						= dir_ZigzagC == 1  ? 4 : 2
+	broken					= false
+	if bar_index-1>array.get(zigzagC,nxt+1)
+		last_x				= round(array.get(zigzagC,nxt+1))
+		last_y				= array.get(zigzagC,nxt)
+		for x				= array.get(zigzagC,nxt+1) +1 to bar_index -1
+			yloc			= array.get(zigzagC,ind)+		calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius,x)
+			if na(yloc)
 				break
-			ifnotna(yloc)andarray.get(cls,round(bar_index-x))>yloc
-				broken:= true
+			if not na(yloc) and array.get(cls,round(bar_index-x)) > yloc
+				broken		:= true
 				break
-			last_x:= last_x+1
-			last_y:= yloc
+			last_x			:= last_x +1
+			last_y			:= yloc
 	broken
 
-//variablestocheckifanycirclebroken
-varbooluptbroken= false
-varbooldowntbroken= false
-uptexist= false
-downtexist= false
+//variables to check if any circlebroken
+bool uptbroken			    = false
+bool downtbroken		    = false
+uptexist					= false
+downtexist					= false
 
-ifarray.size(zigzagC)>= 6
-	//radiusofcircles
-	r1= sqrt(pow(array.get(zigzagC,0)-array.get(zigzagC,2),2)+pow((array.get(zigzagC,1)-array.get(zigzagC,3))*width,2))
-	r2= sqrt(pow(array.get(zigzagC,2)-array.get(zigzagC,4),2)+pow((array.get(zigzagC,3)-array.get(zigzagC,5))*width,2))
-	radius_up= dir_ZigzagC == 1?r1:r2
-	radius_down= dir_ZigzagC == 1?r2:r1
+if array.size(zigzagC) >=  6
+	//radius of circles
+	r1						= sqrt(pow(array.get(zigzagC,0)-array.get(zigzagC,2),2)+pow((array.get(zigzagC,1)-array.get(zigzagC,3))*width,2))
+	r2						= sqrt(pow(array.get(zigzagC,2)-array.get(zigzagC,4),2)+pow((array.get(zigzagC,3)-array.get(zigzagC,5))*width,2))
+	radius_up				= dir_ZigzagC == 1?r1:r2
+	radius_down				= dir_ZigzagC == 1?r2:r1
 	
-	//drawuptrendcircleifneeded
-	ifdirchanged_zigzagCorwidth!= width[1]or(dir_ZigzagC == 1and(array.get(zigzagC,0)!= array.get(oldzigzag,0)orarray.get(zigzagC,1)!= array.get(oldzigzag,1)))
-		uptbroken:= false
-		uptbroken:= draw_up_circle(radius_up)
+	//draw uptrend circle if needed
+	if dirchanged_zigzagC or width!= width[1] or (dir_ZigzagC == 1 and (array.get(zigzagC,0)!= array.get(oldzigzag,0) or array.get(zigzagC,1)!= array.get(oldzigzag,1)))
+		uptbroken			:= false
+		uptbroken			:= draw_up_circle(radius_up)
 	
-	//drawdowntrendcircleifneeded
-	ifdirchanged_zigzagCorwidth!= width[1]or(dir_ZigzagC == -1and(array.get(zigzagC,0)!= array.get(oldzigzag,0)orarray.get(zigzagC,1)!= array.get(oldzigzag,1)))
-		downtbroken:= false
-		downtbroken:= draw_down_circle(radius_down)		
+	//draw downtrend circle if needed
+	if dirchanged_zigzagC or width!= width[1] or (dir_ZigzagC == -1 and (array.get(zigzagC,0)!= array.get(oldzigzag,0) or array.get(zigzagC,1)!= array.get(oldzigzag,1)))
+		downtbroken			:= false
+		downtbroken			:= draw_down_circle(radius_down)		
 	
-	//calculate/checkanddrawpartofuptrendcircleforlastlast
-	ifnotuptbroken
-		ind= dir_ZigzagC == 1?0:2
-		yloc= array.get(zigzagC,ind)-calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_up,bar_index)
-		ifnotna(yloc)andclose>= yloc
-			uptexist:= true
-			lasty= array.get(zigzagC,ind)-calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_up,bar_index-1)
+	//calculate/check and draw part of uptrend circle for last last
+	if not uptbroken
+		ind					= dir_ZigzagC == 1?0:2
+		yloc				= array.get(zigzagC,ind)-calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_up,bar_index)
+		if not na(yloc) and close >=  yloc
+			uptexist		:= true
+			lasty			= array.get(zigzagC,ind)-calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_up,bar_index-1)
 			
-		ifnotna(yloc)andclose<yloc
-			uptbroken:= true
+		if not na(yloc) and close < yloc
+			uptbroken		:= true
 	
-	//calculate/checkanddrawpartofdowntrendcircleforlastlast
-	ifnotdowntbroken
-		ind= dir_ZigzagC == 1?2:0
-		yloc= array.get(zigzagC,ind)+calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_down,bar_index)
-		ifnotna(yloc)andclose<= yloc
-			downtexist:= true
-			lasty= array.get(zigzagC,ind)+calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_down,bar_index-1)
+	//calculate/check and draw part of downtrend circle for last last
+	if not downtbroken
+		ind					= dir_ZigzagC == 1?2:0
+		yloc				= array.get(zigzagC,ind)+calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_down,bar_index)
+		if not na(yloc) and close <= yloc
+			downtexist		:= true
+			lasty			= array.get(zigzagC,ind)+calc_pos_circle_rad(array.get(zigzagC,ind),array.get(zigzagC,ind+1),radius_down,bar_index-1)
 			
-		ifnotna(yloc)andclose>yloc
-			downtbroken:= true
+		if not na(yloc) and close > yloc
+			downtbroken		:= true
 
-varBO_ZigzagC_long= false
-exit_BO_ZigzagC_long= false
-ifdowntexist[1]andnotdowntexistanduptexist
-	BO_ZigzagC_long:= true
-ifBO_ZigzagC_longanddowntexist
-	BO_ZigzagC_long:= false
-	exit_BO_ZigzagC_long:= true
-varBO_ZigzagC_short= false
-exit_BO_ZigzagC_short= false
-ifuptexist[1]andnotuptexistanddowntexist
-	BO_ZigzagC_short:= true
-ifBO_ZigzagC_shortanduptexist
-	BO_ZigzagC_short:= false
-	exit_BO_ZigzagC_short:= true
+var BO_ZigzagC_long			= false
+exit_BO_ZigzagC_long		= false
+if downtexist[1] and not downtexist and uptexist
+	BO_ZigzagC_long			:= true
+if BO_ZigzagC_long and downtexist
+	BO_ZigzagC_long			:= false
+	exit_BO_ZigzagC_long    := true
+var BO_ZigzagC_short		= false
+exit_BO_ZigzagC_short		= false
+if uptexist[1] and not uptexist and downtexist
+	BO_ZigzagC_short		:= true
+if BO_ZigzagC_short and uptexist
+	BO_ZigzagC_short		= false //Shadowing variable 'BO_ZigzagC_short' which exists in parent scope. Did you want to use the ':=' operator instead of '=' ?
+	exit_BO_ZigzagC_short	:= true
 
 
 //														BIGBREAKOUTFINDER
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒		
-
-prd_bof= 10//PERIOD
-bof_len= 3000//MAXBOLENGTH
-cwidthu_bof= 1./100//TRESHOLDRATE%
-mintest_bof= 3//MINIMUMNUMBEROFTESTS
+prd_bof						= 10//PERIOD
+bof_len						= 3000//MAXBOLENGTH
+cwidthu_bof					= 1./100//TRESHOLDRATE%
+mintest_bof					= 3//MINIMUMNUMBEROFTESTS
 
 //width
-lll_bof= max(min(bar_index,300),1)
-floath__bof= highest(lll_bof)
-floatl__bof= lowest(lll_bof)
-floatchwidth= (h__bof-l__bof)*cwidthu_bof
+lll_bof						= max( min( bar_index , 300 ) , 1 )
+float h__bof					= highest( lll_bof )
+float l__bof					= lowest( lll_bof )
+float chwidth				= ( h__bof - l__bof ) * cwidthu_bof
 
-//checkifPH/PL
-ph_bof= pivothigh(prd_bof,prd_bof)
-pl_bof= pivotlow(prd_bof,prd_bof)
+//check if PH/PL
+ph_bof						= pivothigh( prd_bof , prd_bof )
+pl_bof						= pivotlow( prd_bof , prd_bof )
 
-//keepPivotPointsandtheirlocationsinthearrays
-varphval_bof= array.new_float(0)
-varphloc_bof= array.new_int(0)
-varplval_bof= array.new_float(0)
-varplloc_bof= array.new_int(0)
+//keep Pivot Points and their locations in the arrays
+var phval_bof				= array.new_float(0)
+var phloc_bof				= array.new_int(0)
+var plval_bof				= array.new_float(0)
+var plloc_bof				= array.new_int(0)
 
-//keepph_bof/pl_boflevelsandlocations
-ifph_bof
-	array.unshift(phval_bof,ph_bof)
-	array.unshift(phloc_bof,bar_index-prd_bof)
-	ifarray.size(phval_bof)>1//cleanupoldones
-		forx= array.size(phloc_bof)-1to1
-			ifbar_index-array.get(phloc_bof,x)>bof_len
-				array.pop(phloc_bof)
-				array.pop(phval_bof)
+//keep ph_bof/pl_boflevels and locations
+if ph_bof
+	array.unshift( phval_bof , ph_bof )
+	array.unshift( phloc_bof , bar_index - prd_bof )
+	if array.size( phval_bof ) > 1//cleanupoldones
+		for x				= array.size( phloc_bof ) -1 to 1
+			if bar_index-array.get( phloc_bof , x ) > bof_len
+				array.pop( phloc_bof )
+				array.pop( phval_bof )
 		
-ifpl_bof
-	array.unshift(plval_bof,pl_bof)
-	array.unshift(plloc_bof,bar_index-prd_bof)
-	ifarray.size(plval_bof)>1//cleanupoldones
-		forx= array.size(plloc_bof)-1to1
-			ifbar_index-array.get(plloc_bof,x)>bof_len
-				array.pop(plloc_bof)
-				array.pop(plval_bof)
+if pl_bof
+	array.unshift( plval_bof,pl_bof )
+	array.unshift( plloc_bof , bar_index-prd_bof )
+	if array.size( plval_bof ) > 1//cleanupoldones
+		for x				= array.size( plloc_bof ) - 1 to 1
+			if bar_index-array.get( plloc_bof , x) > bof_len
+				array.pop( plloc_bof )
+				array.pop( plval_bof )
 
-//checkbullishcup
-floatbomax= na
-intbostart= bar_index
-num_bof= 0
-hgst_bof= highest(prd_bof)[1]
-ifarray.size(phval_bof)>= mintest_bofandclose>openandclose>hgst_bof
-	bomax:= array.get(phval_bof,0)
-	xx= 0
-	forx= 0toarray.size(phval_bof)-1
-		ifarray.get(phval_bof,x)>= close
+//check bullish cup
+float bomax					= na
+int bostart					= bar_index
+num_bof						= 0
+hgst_bof					= highest(prd_bof)[1]
+if array.size(phval_bof) >=  mintest_bof and close > open and close > hgst_bof
+	bomax					:= array.get( phval_bof , 0 )
+	xx						= 0
+	for x = 0 to array.size( phval_bof ) -1
+		if array.get( phval_bof , x ) >=  close
 			break
-		xx:= x
-		bomax:= max(bomax,array.get(phval_bof,x))
-	ifxx>= mintest_bofandopen<= bomax
-		forx= 0toxx
-			ifarray.get(phval_bof,x)<= bomaxandarray.get(phval_bof,x)>= bomax-chwidth
-				num_bof+= 1
-				bostart:= array.get(phloc_bof,x)
-		ifnum_bof<mintest_boforhgst_bof>= bomax
-			bomax:= na
+		xx					:= x
+		bomax				:= max(bomax,array.get(phval_bof,x))
+	if xx >=  mintest_bof and open <= bomax
+		for x = 0 to xx
+			if array.get( phval_bof , x ) <= bomax and array.get(phval_bof,x) >=  bomax - chwidth
+				num_bof		+= 1
+				bostart		:= array.get( phloc_bof , x )
+		if num_bof < mintest_bof or hgst_bof >=  bomax
+			bomax			:= na
 
 
-//checkbearishcup
-floatbomin= na
-bostart:= bar_index
-num1_bof= 0
-lwst= lowest(prd_bof)[1]
-ifarray.size(plval_bof)>= mintest_bofandclose<openandclose<lwst
-	bomin:= array.get(plval_bof,0)
-	xx= 0
-	forx= 0toarray.size(plval_bof)-1
-		ifarray.get(plval_bof,x)<= close
+//check bearish cup
+float bomin					= na
+bostart						:= bar_index
+num1_bof					= 0
+lwst						= lowest( prd_bof )[1]
+if array.size(plval_bof) >=  mintest_bof and close<open and close<lwst
+	bomin					:= array.get( plval_bof , 0 )
+	xx						= 0
+	for x					= 0 to array.size( plval_bof )-1
+		if array.get(plval_bof,x) <= close
 			break
-		xx:= x
-		bomin:= min(bomin,array.get(plval_bof,x))
-	ifxx>= mintest_bofandopen>= bomin
-		forx= 0toxx
-			ifarray.get(plval_bof,x)>= bominandarray.get(plval_bof,x)<= bomin+chwidth
-				num1_bof+= 1
-				bostart:= array.get(plloc_bof,x)
-		ifnum1_bof<mintest_boforlwst<= bomin
-			bomin:= na
+		xx					:= x
+		bomin				:= min( bomin,array.get( plval_bof , x ))
+	if xx >=  mintest_bof and open >=  bomin
+		for x				= 0 to xx
+			if array.get( plval_bof , x ) >=  bomin and array.get( plval_bof , x ) <= bomin + chwidth
+				num1_bof	+= 1
+				bostart		:= array.get( plloc_bof , x )
+		if num1_bof < mintest_bof or lwst <= bomin
+			bomin			:= na
 			
 
 
@@ -581,14 +580,14 @@ fill( PAP , PCP																					, color= PWP																							, title= 
 
 
 //BO_LONG_ZZC= 
-plotshape( (MODUS == "Position"andBO_ZigzagC_longandnotBO_ZigzagC_long[1])						, color= color.lime		, style= shape.triangleup		, location= location.belowbar	, size= size.tiny, title= "#####")
+plotshape( (MODUS == "Position" and BO_ZigzagC_long and not BO_ZigzagC_long[1])					, color= color.lime		, style= shape.triangleup		, location= location.belowbar	, size= size.tiny, title= "#####")
 //plotshape(exit_BO_ZigzagC_long,style= shape.xcross,color= color.lime,location= location.abovebar,size= size.small)
 //BO_SHORT_ZZC= 
-plotshape( (MODUS == "Position"andBO_ZigzagC_shortandnotBO_ZigzagC_short[1])					, color= color.red		, style= shape.triangledown		, location= location.abovebar	, size= size.tiny, title= "#####")
+plotshape( (MODUS == "Position" and BO_ZigzagC_short and not BO_ZigzagC_short[1])				, color= color.red		, style= shape.triangledown		, location= location.abovebar	, size= size.tiny, title= "#####")
 //plotshape(exit_BO_ZigzagC_short,style= shape.xcross,color= color.red,location= location.belowbar,size= size.small)
 
-plotshape( MODUS == "Position"and(notna(bomax)andnum_bof>= mintest_bof)							, color= color.green	, style = shape.triangleup		, location= location.belowbar	, size= size.small, title= "#####")
-plotshape (MODUS == "Position"and(notna(bomin)andnum1_bof>= mintest_bof)						, color= color.red		, style = shape.triangledown	, location= location.belowbar	, size= size.small, title= "#####")
+plotshape( MODUS == "Position"and(not na(bomax) and num_bof     >=  mintest_bof)				, color= color.green	, style = shape.triangleup		, location= location.belowbar	, size= size.small, title= "#####")
+plotshape (MODUS == "Position"and(not na(bomin) and num1_bof    >=  mintest_bof)				, color= color.red		, style = shape.triangledown	, location= location.belowbar	, size= size.small, title= "#####")
 
 //															OPENINTEREST
 //▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -604,13 +603,13 @@ fill( POI , PZE																					, color= PWP																							, title= 
 MIN_LEVERAGE_LINE			= lowest(LEVERAGE,1)
 MIN_LEVERAGE_LINE			:= MIN_LEVERAGE_LINE[1]>MIN_LEVERAGE_LINE?MIN_LEVERAGE_LINE:MIN_LEVERAGE_LINE[1]<MIN_LEVERAGE_LINE?MIN_LEVERAGE_LINE[1]:MIN_LEVERAGE_LINE
 plot( iff(MODUS == "OpenInterest",MIN_LEVERAGE_LINE,na)											, color= #00AA88CC		, trackprice= true				, show_last= 1									, title= "#####")
-MIN_LEVERAGELABEL			= label.new(iff(MODUS == "OpenInterest",bar_index,na),MIN_LEVERAGE_LINE,'Maxshortleverage'+tostring(MIN_LEVERAGE_LINE)+'%',color= #00AA8888,textcolor= color.white,style= label.style_labeldown,yloc= yloc.price)
+MIN_LEVERAGELABEL			= label.new(iff(MODUS == "OpenInterest",bar_index,na),MIN_LEVERAGE_LINE,'Max short leverage '+tostring(MIN_LEVERAGE_LINE)+' %',color= #00AA8888,textcolor= color.white,style= label.style_labeldown,yloc= yloc.price)
 label.delete(MIN_LEVERAGELABEL[1])
 
 MAX_LEVERAGE_LINE			= highest(LEVERAGE,1)
 MAX_LEVERAGE_LINE			:= MAX_LEVERAGE_LINE[1]<MAX_LEVERAGE_LINE		?MAX_LEVERAGE_LINE		:MAX_LEVERAGE_LINE[1]>MAX_LEVERAGE_LINE		?MAX_LEVERAGE_LINE[1]:MAX_LEVERAGE_LINE
 plot (iff(MODUS == "OpenInterest",MAX_LEVERAGE_LINE,na)											, color= #00AA88CC		, trackprice= true				, show_last= 1									, title= "#####")
-MAX_LEVERAGELABEL			= label.new(iff(MODUS == "OpenInterest",bar_index,na),MAX_LEVERAGE_LINE,'Maxlongleverage'+tostring(MAX_LEVERAGE_LINE)+'%',color= #00AA8888,textcolor= color.white,style= label.style_labeldown,yloc= yloc.price)
+MAX_LEVERAGELABEL			= label.new(iff(MODUS == "OpenInterest",bar_index,na),MAX_LEVERAGE_LINE,'Max long leverage '+tostring(MAX_LEVERAGE_LINE)+' %',color= #00AA8888,textcolor= color.white,style= label.style_labeldown,yloc= yloc.price)
 label.delete(MAX_LEVERAGELABEL[1])
 
 plot(iff(MODUS == "OpenInterest",0,na)															, color= color.gray		, style= plot.style_stepline	, linewidth= 1	, offset= 1						, title= "#####")
@@ -624,7 +623,7 @@ DRAWLINE					= lowest(DRAW, 1)
 DRAWLINE					:= DRAWLINE[1] > DRAWLINE ? DRAWLINE : DRAWLINE[1] < DRAWLINE ? DRAWLINE[1] : DRAWLINE
 plot( iff(MODUS == "Drawdown", DRAWLINE, na)													, color= #00AA88CC		, show_last= 1												, trackprice= true	, title= "#####")
 DRAWDOWN					= round( ( 1 - DRAWLINE) * 100 , 2) 
-DRAWDOWNLABEL				= label.new( iff(MODUS == "Drawdown", bar_index , na), DRAWLINE , 'Max Drawdown from position '+tostring(DRAWDOWN)+'%', color= #00AA8888, textcolor= color.white , style= label.style_labeldown , yloc= yloc.price )
+DRAWDOWNLABEL				= label.new( iff(MODUS == "Drawdown", bar_index , na), DRAWLINE , 'Max Drawdown from position '+tostring(DRAWDOWN)+' %', color= #00AA8888, textcolor= color.white , style= label.style_labeldown , yloc= yloc.price )
 label.delete(DRAWDOWNLABEL[1])
 
 float DRAWCOUNT= 0
