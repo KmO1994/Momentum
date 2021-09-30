@@ -665,7 +665,7 @@ if STATS_SHOW
 	table.cell(table_id= Table	, column= 0	, row= 9, text_size= size.small		, text_color= color.black	, text_halign= text.align_left	, bgcolor= #00000000, text= "𝗠𝗮𝘅 𝗢𝗽𝗲𝗻𝗜𝗻𝘁𝗲𝗿𝗲𝘀𝘁")
 	table.cell(table_id= Table	, column= 1	, row= 9, text_size= size.small		, text_color= color.black	, text_halign= text.align_right	, bgcolor= #00000000, text= "Missing" + " USD")
 	table.cell(table_id= Table	, column= 0	, row= 10, text_size= size.small	, text_color= color.black	, text_halign= text.align_left	, bgcolor= #00000000, text= "𝗠𝗮𝘅 𝗟𝗲𝘃𝗲𝗿𝗮𝗴𝗲")
-	table.cell(table_id= Table	, column= 1	, row= 10, text_size= size.small	, text_color= color.black	, text_halign= text.align_right	, bgcolor= #00000000, text= "Missing" + " x")
+	table.cell(table_id= Table	, column= 1	, row= 10, text_size= size.small	, text_color= color.black	, text_halign= text.align_right	, bgcolor= #00000000, text= tostring(round(MAX_LEVERAGE_LINE,1))+ "x | " + tostring(round(MIN_LEVERAGE_LINE,1))+ "x")
 	table.cell(table_id= Table	, column= 0	, row= 11, text_size= size.small	, text_color= color.black	, text_halign= text.align_left	, bgcolor= #00000000, text= "𝗟𝗶𝗾𝘂𝗶𝗱𝗮𝘁𝗶𝗼𝗻")
 	table.cell(table_id= Table	, column= 1	, row= 11, text_size= size.small	, text_color= color.black	, text_halign= text.align_right	, bgcolor= #00000000, text= "Missing")
 	table.cell(table_id= Table	, column= 0	, row= 12, text_size= size.small	, text_color= color.black	, text_halign= text.align_left	, bgcolor= #00000000, text= "𝗨𝗻𝗱𝗲𝗿𝘄𝗮𝘁𝗲𝗿 𝗥𝗮𝘁𝗶𝗼")
